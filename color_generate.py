@@ -15,11 +15,22 @@ class ColorUtils:
         return '#%02X%02X%02X' % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
     @staticmethod
+    def hex_to_rgb(hex_color):
+        """将16进制颜色转换为RGB元组"""
+        return tuple(int(hex_color[i:i + 2], 16) for i in (1, 3, 5))
+
+    @staticmethod
+    def rgb_to_hex(rgb_color):
+        """将RGB元组转换为16进制颜色"""
+        return '#%02X%02X%02X' % rgb_color
+
+    @staticmethod
     def color_distance(c1, c2):
         """计算两种颜色之间的欧几里德距离"""
         r1, g1, b1 = int(c1[1:3], 16), int(c1[3:5], 16), int(c1[5:7], 16)
         r2, g2, b2 = int(c2[1:3], 16), int(c2[3:5], 16), int(c2[5:7], 16)
         return ((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2) ** 0.5
+
 
 class ColorGenerator:
     """生成具有足够差异的颜色"""
@@ -30,7 +41,9 @@ class ColorGenerator:
 
     def generate_colors(self, num_colors=100):
         """生成指定数量的具有足够差异的颜色"""
-        self.colors.append({'id': 1, 'hex': ColorUtils.random_color()})
+        color_hex = ColorUtils.random_color()
+        color_rgb = ColorUtils.hex_to_rgb(color_hex)
+        self.colors.append({'id': 1, 'hex': color_hex, 'rgb': list(color_rgb)})
 
         for i in range(2, num_colors + 1):
             new_color = ColorUtils.random_color()
@@ -46,7 +59,7 @@ class ColorGenerator:
                     distance = ColorUtils.color_distance(new_color, color['hex'])
                     if distance < min_distance:
                         min_distance = distance
-            self.colors.append({'id': i, 'hex': new_color})
+            self.colors.append({'id': i, 'hex': new_color, 'rgb': list(ColorUtils.hex_to_rgb(new_color))})
 
     def save_colors(self, filename='./config/colors.yaml'):
         """将生成的颜色保存到YAML文件"""
@@ -92,8 +105,10 @@ class ColorVisualizer:
             plt.savefig(save_filename)
         plt.show()
 
+
 if __name__ == '__main__':
     if not os.path.exists('./config/colors.yaml'):
+        print('colors.yaml文件已存在,正在读取...')
         color_generator = ColorGenerator()
         color_generator.generate_colors()
         color_generator.save_colors()
